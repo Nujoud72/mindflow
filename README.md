@@ -54,3 +54,25 @@ Sistem; başarı oranı, tepki süresi ve hata sayısı gibi performans verileri
 IF başarı oranı yüksek AND hata sayısı düşük THEN zorluk artırılır.
 IF başarı oranı düşük OR hata sayısı yüksek THEN zorluk azaltılır.
 IF başarı oranı yeterli AND tepki süresi normal THEN mevcut seviye korunur.
+```
+
+## 🚧 Geliştirme Durumu
+
+Proje şu anda aktif geliştirme aşamasındadır.
+
+Planlanan geliştirmeler:
+
+- Kullanıcı kayıt ve giriş sistemi
+- Oyun modüllerinin tamamlanması
+- Performans verilerinin Firestore'a kaydedilmesi
+- Adaptif zorluk algoritmasının uygulanması
+- Kullanıcı ilerleme ekranlarının geliştirilmesi
+- Grafik ve raporlama ekranlarının eklenmesi
+
+## 📱 Hedef Platform
+
+MindFlow, Android mobil cihazlar için geliştirilmektedir.
+
+## 📂 Proje Durumu
+
+Bu depo, MindFlow bitirme projesinin kaynak kodlarını ve geliştirme sürecine ait dosyaları içermektedir. Proje tamamlandıkça README dosyası güncellenecektir.
