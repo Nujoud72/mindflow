@@ -58,16 +58,7 @@ IF başarı oranı yeterli AND tepki süresi normal THEN mevcut seviye korunur.
 
 ## 🚧 Geliştirme Durumu
 
-Proje şu anda aktif geliştirme aşamasındadır.
-
-Planlanan geliştirmeler:
-
-- Kullanıcı kayıt ve giriş sistemi
-- Oyun modüllerinin tamamlanması
-- Performans verilerinin Firestore'a kaydedilmesi
-- Adaptif zorluk algoritmasının uygulanması
-- Kullanıcı ilerleme ekranlarının geliştirilmesi
-- Grafik ve raporlama ekranlarının eklenmesi
+Proje şu anda aktif geliştirme aşamasındadır. Oyun modülleri, kullanıcı performans takibi ve adaptif zorluk sistemi proje sürecinde geliştirilmeye devam etmektedir.
 
 ## 📱 Hedef Platform
 
