@@ -1,5 +1,13 @@
 import 'games/memory_level_select_screen.dart';
-import 'games/memory_game_screen.dart';
+import 'games/number_sequence_level_select_screen.dart';
+import 'games/big_number_level_select_screen.dart';
+import 'games/number_challenge_level_select_screen.dart';
+import 'games/dot_connect_level_select_screen.dart';
+import 'games/symbol_grid_level_select_screen.dart';
+import 'games/word_color_level_select_screen.dart';
+import 'games/person_match_level_select_screen.dart';
+import 'games/word_builder_level_select_screen.dart';
+import 'games/word_definition_level_select_screen.dart';
 import 'package:flutter/material.dart';
 
 class GamesScreen extends StatefulWidget {
@@ -33,29 +41,89 @@ class _GamesScreenState extends State<GamesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _categorySection('Hafıza Oyunları', [
-              _gameData('Eşleştirmece', 'Kolay', Icons.style, Colors.amber),
+            _categorySection('Hafıza ', [
+              _gameData(
+                'Eşleştirmece',
+                'Kolay',
+                Icons.style,
+                Colors.amber,
+                true,
+              ),
               _gameData(
                 'Sayı Dizisi',
                 'Orta',
                 Icons.format_list_numbered,
                 Colors.orange,
+                true,
               ),
             ]),
             const SizedBox(height: 8),
-            _categorySection('Dikkat Oyunları', [
+            _categorySection('Matematik', [
               _gameData(
-                'Odaklanma Akışı',
-                'Orta',
-                Icons.remove_red_eye,
-                Colors.green,
+                'Büyük Sayı',
+                'Kolay',
+                Icons.calculate,
+                Colors.blue,
+                true,
               ),
-              _gameData('Renk Tanıma', 'Kolay', Icons.color_lens, Colors.teal),
+              _gameData(
+                'Sayı Mücadelesi',
+                'Orta',
+                Icons.trending_up,
+                Colors.blue,
+                true,
+              ),
             ]),
             const SizedBox(height: 8),
             _categorySection('Problem Çözme', [
-              _gameData('Bulmaca Yolu', 'Zor', Icons.psychology, Colors.purple),
-              _gameData('Mantık Zinciri', 'Orta', Icons.link, Colors.indigo),
+              _gameData(
+                'Noktaları Birleştir',
+                'Orta',
+                Icons.timeline,
+                Colors.indigo,
+                true,
+              ),
+              _gameData(
+                'Küp Bulmacası',
+                'Zor',
+                Icons.view_in_ar,
+                Colors.indigo,
+                true,
+              ),
+            ]),
+            const SizedBox(height: 8),
+            _categorySection('Dikkat', [
+              _gameData(
+                'Renk Tanıma',
+                'Kolay',
+                Icons.color_lens,
+                Colors.teal,
+                true,
+              ),
+              _gameData(
+                'Kişi Benzerliği',
+                'Orta',
+                Icons.face,
+                Colors.teal,
+                true,
+              ),
+            ]),
+            const SizedBox(height: 8),
+            _categorySection('Dil', [
+              _gameData(
+                'Kelime Oluşturma',
+                'Kolay',
+                Icons.abc,
+                Colors.pink,
+                true,
+              ),
+              _gameData(
+                'Kelime Tanımı',
+                'Orta',
+                Icons.menu_book,
+                Colors.pink,
+                true,
+              ),
             ]),
           ],
         ),
@@ -68,8 +136,15 @@ class _GamesScreenState extends State<GamesScreen> {
     String level,
     IconData icon,
     Color color,
+    bool isAvailable,
   ) {
-    return {'name': name, 'level': level, 'icon': icon, 'color': color};
+    return {
+      'name': name,
+      'level': level,
+      'icon': icon,
+      'color': color,
+      'isAvailable': isAvailable,
+    };
   }
 
   Widget _categorySection(String title, List<Map<String, dynamic>> games) {
@@ -89,6 +164,7 @@ class _GamesScreenState extends State<GamesScreen> {
               game['level'],
               game['icon'],
               game['color'],
+              game['isAvailable'],
             ),
           ),
         ),
@@ -97,7 +173,13 @@ class _GamesScreenState extends State<GamesScreen> {
     );
   }
 
-  Widget _gameCard(String name, String level, IconData icon, Color color) {
+  Widget _gameCard(
+    String name,
+    String level,
+    IconData icon,
+    Color color,
+    bool isAvailable,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -155,30 +237,122 @@ class _GamesScreenState extends State<GamesScreen> {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                if (name == 'Eşleştirmece') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MemoryLevelSelectScreen(),
+            child: isAvailable
+                ? ElevatedButton.icon(
+                    onPressed: () {
+                      if (name == 'Eşleştirmece') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MemoryLevelSelectScreen(),
+                          ),
+                        );
+                      } else if (name == 'Sayı Dizisi') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const NumberSequenceLevelSelectScreen(),
+                          ),
+                        );
+                      } else if (name == 'Büyük Sayı') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BigNumberLevelSelectScreen(),
+                          ),
+                        );
+                      } else if (name == 'Sayı Mücadelesi') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const NumberChallengeLevelSelectScreen(),
+                          ),
+                        );
+                      } else if (name == 'Noktaları Birleştir') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DotConnectLevelSelectScreen(),
+                          ),
+                        );
+                      } else if (name == 'Küp Bulmacası') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SymbolGridLevelSelectScreen(),
+                          ),
+                        );
+                      } else if (name == 'Renk Tanıma') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const WordColorLevelSelectScreen(),
+                          ),
+                        );
+                      } else if (name == 'Kişi Benzerliği') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const PersonMatchLevelSelectScreen(),
+                          ),
+                        );
+                      } else if (name == 'Kelime Oluşturma') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const WordBuilderLevelSelectScreen(),
+                          ),
+                        );
+                      } else if (name == 'Kelime Tanımı') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const WordDefinitionLevelSelectScreen(),
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(
+                      Icons.play_arrow,
+                      color: Colors.white,
+                      size: 18,
                     ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.play_arrow, color: Colors.white, size: 18),
-              label: const Text(
-                'Hemen Oyna',
-                style: TextStyle(color: Colors.white),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2196F3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
+                    label: const Text(
+                      'Hemen Oyna',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2196F3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  )
+                : ElevatedButton.icon(
+                    onPressed: null,
+                    icon: const Icon(
+                      Icons.lock_clock,
+                      color: Colors.grey,
+                      size: 18,
+                    ),
+                    label: const Text(
+                      'Yakında',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey.shade200,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
           ),
         ],
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firestore_service.dart';
+import 'games/memory_level_select_screen.dart';
+import 'games/number_sequence_level_select_screen.dart';
 
 class DailyScreen extends StatefulWidget {
   const DailyScreen({super.key});
@@ -14,54 +16,51 @@ class _DailyScreenState extends State<DailyScreen> {
   String _userName = '';
   bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _tasks = [
+  Set<String> _playedToday = {};
+  Set<DateTime> _weeklyActivity = {};
+
+  final List<Map<String, dynamic>> _allGames = [
     {
       'name': 'Hafıza Kartları',
-      'status': 'Tamamlandı',
       'icon': Icons.style,
-      'color': Colors.green,
-      'taskStatus': TaskStatus.done,
+      'color': Colors.amber,
+      'screenBuilder': (_) => const MemoryLevelSelectScreen(),
     },
     {
-      'name': 'Odaklanma Akışı',
-      'status': 'Devam Ediyor',
-      'icon': Icons.remove_red_eye,
-      'color': Colors.blue,
-      'taskStatus': TaskStatus.inProgress,
-    },
-    {
-      'name': 'Mantık Bulmacası',
-      'status': 'Henüz Başlamadı',
-      'icon': Icons.psychology,
+      'name': 'Sayı Dizisi',
+      'icon': Icons.format_list_numbered,
       'color': Colors.orange,
-      'taskStatus': TaskStatus.locked,
+      'screenBuilder': (_) => const NumberSequenceLevelSelectScreen(),
     },
   ];
 
   @override
   void initState() {
     super.initState();
-    _loadUser();
+    _loadData();
   }
 
-  Future<void> _loadUser() async {
+  Future<void> _loadData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-    final data = await _firestoreService.getUserProfile(uid);
-    if (data != null) {
-      setState(() {
-        _userName = data['name'] ?? '';
-        _isLoading = false;
-      });
-    } else {
+    if (uid == null) {
       setState(() => _isLoading = false);
+      return;
     }
+
+    final profile = await _firestoreService.getUserProfile(uid);
+    final playedToday = await _firestoreService.getTodayPlayedGameNames(uid);
+    final weeklyActivity = await _firestoreService.getWeeklyActivityDates(uid);
+
+    setState(() {
+      _userName = profile?['name'] ?? '';
+      _playedToday = playedToday;
+      _weeklyActivity = weeklyActivity;
+      _isLoading = false;
+    });
   }
 
-  int get _completedTasks =>
-      _tasks.where((t) => t['taskStatus'] == TaskStatus.done).length;
-
-  double get _progress => _completedTasks / _tasks.length;
+  int get _completedCount => _playedToday.length;
+  double get _progress => _allGames.isEmpty ? 0 : _completedCount / _allGames.length;
 
   @override
   Widget build(BuildContext context) {
@@ -74,161 +73,117 @@ class _DailyScreenState extends State<DailyScreen> {
           'Günlük Antrenman',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.tune, color: Colors.black),
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE3F2FD),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2196F3),
-                            borderRadius: BorderRadius.circular(12),
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F2FD),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2196F3),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.sentiment_satisfied_alt, color: Colors.white, size: 24),
                           ),
-                          child: const Icon(
-                            Icons.sentiment_satisfied_alt,
-                            color: Colors.white,
-                            size: 24,
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'HOŞ GELDİN!',
+                                style: TextStyle(fontSize: 11, color: Color(0xFF2196F3), fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Harika gidiyorsun, $_userName!',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                              ),
+                              const Text('Devam et!', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'HOŞ GELDİN!',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF2196F3),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Harika gidiyorsun, $_userName!',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Text(
-                              'Devam et!',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Haftalık İlerleme',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _dayCircle('Pzt', true, false),
-                            _dayCircle('Sal', true, false),
-                            _dayCircle('Çar', true, false),
-                            _dayCircle('Per', true, true),
-                            _dayCircle('Cum', false, false),
-                            _dayCircle('Cmt', false, false),
-                            _dayCircle('Paz', false, false),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Bugünkü İlerleme',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            Text(
-                              '%${(_progress * 100).toInt()}',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF2196F3),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: LinearProgressIndicator(
-                            value: _progress,
-                            minHeight: 10,
-                            backgroundColor: const Color(0xFFE3F2FD),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFF2196F3),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Bugünkü Görevler',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  ..._tasks.map(
-                    (task) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _taskCard(
-                        task['name'],
-                        task['status'],
-                        task['icon'],
-                        task['color'],
-                        task['taskStatus'],
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    const Text('Haftalık İlerleme', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                      ),
+                      child: Column(
+                        children: [
+                          Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: _buildWeekDays()),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Bugünkü İlerleme', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                              Text(
+                                '$_completedCount/${_allGames.length} oyun',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF2196F3)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: LinearProgressIndicator(
+                              value: _progress,
+                              minHeight: 10,
+                              backgroundColor: const Color(0xFFE3F2FD),
+                              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2196F3)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Bugünkü Görevler', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    ..._allGames.map((game) {
+                      final isDone = _playedToday.contains(game['name']);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _taskCard(game, isDone),
+                      );
+                    }),
+                  ],
+                ),
               ),
             ),
     );
+  }
+
+  List<Widget> _buildWeekDays() {
+    const dayLabels = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+
+    return List.generate(7, (i) {
+      final date = monday.add(Duration(days: i));
+      final isToday = date == today;
+      final isCompleted = _weeklyActivity.contains(date);
+      return _dayCircle(dayLabels[i], isCompleted, isToday);
+    });
   }
 
   Widget _dayCircle(String day, bool completed, bool isToday) {
@@ -239,12 +194,8 @@ class _DailyScreenState extends State<DailyScreen> {
           height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: completed
-                ? const Color(0xFF2196F3)
-                : const Color(0xFFE3F2FD),
-            border: isToday
-                ? Border.all(color: const Color(0xFF2196F3), width: 2)
-                : null,
+            color: completed ? const Color(0xFF2196F3) : const Color(0xFFE3F2FD),
+            border: isToday ? Border.all(color: const Color(0xFF2196F3), width: 2) : null,
           ),
           child: Icon(
             completed ? Icons.star : Icons.circle_outlined,
@@ -258,21 +209,14 @@ class _DailyScreenState extends State<DailyScreen> {
     );
   }
 
-  Widget _taskCard(
-    String name,
-    String status,
-    IconData icon,
-    Color color,
-    TaskStatus taskStatus,
-  ) {
+  Widget _taskCard(Map<String, dynamic> game, bool isDone) {
+    final Color color = game['color'];
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
       child: Row(
         children: [
@@ -282,53 +226,37 @@ class _DailyScreenState extends State<DailyScreen> {
               color: color.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color, size: 22),
+            child: Icon(game['icon'], color: color, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(game['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                 Text(
-                  name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
+                  isDone ? 'Bugün Tamamlandı' : 'Henüz Oynanmadı',
+                  style: TextStyle(color: isDone ? Colors.green : Colors.grey, fontSize: 12),
                 ),
-                Text(status, style: TextStyle(color: color, fontSize: 12)),
               ],
             ),
           ),
-          _taskAction(taskStatus),
+          isDone
+              ? const Icon(Icons.check_circle, color: Colors.green, size: 28)
+              : ElevatedButton(
+                  onPressed: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: game['screenBuilder']));
+                    _loadData();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  child: const Text('Oyna', style: TextStyle(color: Colors.white, fontSize: 13)),
+                ),
         ],
       ),
     );
   }
-
-  Widget _taskAction(TaskStatus status) {
-    switch (status) {
-      case TaskStatus.done:
-        return const Icon(Icons.check_circle, color: Colors.green, size: 28);
-      case TaskStatus.inProgress:
-        return ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF2196F3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          ),
-          child: const Text(
-            'Başlat',
-            style: TextStyle(color: Colors.white, fontSize: 13),
-          ),
-        );
-      case TaskStatus.locked:
-        return const Icon(Icons.lock_outline, color: Colors.grey, size: 24);
-    }
-  }
 }
-
-enum TaskStatus { done, inProgress, locked }

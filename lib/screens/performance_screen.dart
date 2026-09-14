@@ -40,7 +40,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
       int totalStars = 0;
       int bestLevel = 0;
       final weeklyGames = List.filled(7, 0);
-      final now = DateTime.now();
+      final now = DateTime.now().toLocal();
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
 
       for (var r in results) {
@@ -52,8 +52,8 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
         // Haftalık dağılım
         final playedAt = r['playedAt'];
         if (playedAt != null) {
-          final date = (playedAt as dynamic).toDate() as DateTime;
-          final diff = date.difference(weekStart).inDays;
+          final date = ((playedAt as dynamic).toDate() as DateTime).toLocal();
+          final diff = DateTime(date.year, date.month, date.day).difference(DateTime(weekStart.year, weekStart.month, weekStart.day)).inDays;
           if (diff >= 0 && diff < 7) {
             weeklyGames[diff]++;
           }
@@ -194,7 +194,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                                         ? _weeklyGames[i] / max
                                         : 0.0;
                                     final isToday =
-                                        i == DateTime.now().weekday - 1;
+                                        i ==DateTime.now().toLocal().weekday - 1;
                                     return Column(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [

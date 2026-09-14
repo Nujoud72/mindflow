@@ -246,9 +246,17 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
-          timeUp ? '⏰ Süre Doldu!' : '🎉 Tebrikler!',
+          timeUp
+              ? '⏰ Süre Doldu!'
+              : stars == 3
+              ? 'Tebrikler, Süpersin! 🏆'
+              : stars == 2
+              ? 'Tebrikler, Harikaydın! 🌟'
+              : stars == 1
+              ? 'Tebrikler, Başardın! 💪'
+              : 'Bir Dahaki Sefere! 🔄',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,

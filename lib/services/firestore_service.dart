@@ -73,7 +73,7 @@ class FirestoreService {
 
   // Günlük görevleri getir
   Future<List<Map<String, dynamic>>> getDailyTasks(String uid) async {
-    final today = DateTime.now();
+    final today = DateTime.now().toLocal();
     final startOfDay = DateTime(today.year, today.month, today.day);
 
     final snapshot = await _db
@@ -121,9 +121,9 @@ class FirestoreService {
     if (dates.isEmpty) return 0;
 
     final today = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
+      DateTime.now().toLocal().year,
+      DateTime.now().toLocal().month,
+      DateTime.now().toLocal().day,
     );
 
     // Bugün veya dün oynamadıysa streak sıfır
@@ -141,9 +141,30 @@ class FirestoreService {
     return streak;
   }
 
+// En çok oynanan oyunlar (isim + oynanma sayısı), azalan sırada
+  Future<List<MapEntry<String, int>>> getMostPlayedGames(String uid) async {
+    final snapshot = await _db
+        .collection('users')
+        .doc(uid)
+        .collection('gameResults')
+        .get();
+
+    final counts = <String, int>{};
+    for (final doc in snapshot.docs) {
+      final name = doc.data()['gameName'] as String?;
+      if (name == null) continue;
+      counts[name] = (counts[name] ?? 0) + 1;
+    }
+
+    final sorted = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return sorted;
+  }
+  // Bugün oynanan oyun sayısı
   // Bugün oynanan oyun sayısı
   Future<int> getTodayGamesCount(String uid) async {
-    final now = DateTime.now();
+    final now = DateTime.now().toLocal();
     final startOfDay = DateTime(now.year, now.month, now.day);
 
     final snapshot = await _db
@@ -154,5 +175,47 @@ class FirestoreService {
         .get();
 
     return snapshot.docs.length;
+  }
+
+  // Bugün oynanan oyunların isim listesi (tekrarsız)
+  Future<Set<String>> getTodayPlayedGameNames(String uid) async {
+    final now = DateTime.now().toLocal();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+
+    final snapshot = await _db
+        .collection('users')
+        .doc(uid)
+        .collection('gameResults')
+        .where('playedAt', isGreaterThanOrEqualTo: startOfDay)
+        .get();
+
+    return snapshot.docs.map((doc) => doc.data()['gameName'] as String).toSet();
+  }
+
+  // Son 7 günde hangi günlerde en az 1 oyun oynanmış (haftalık aktivite)
+  Future<Set<DateTime>> getWeeklyActivityDates(String uid) async {
+    final now = DateTime.now().toLocal();
+    final sevenDaysAgo = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(days: 6));
+
+    final snapshot = await _db
+        .collection('users')
+        .doc(uid)
+        .collection('gameResults')
+        .where('playedAt', isGreaterThanOrEqualTo: sevenDaysAgo)
+        .get();
+
+    return snapshot.docs
+        .map((doc) {
+          final ts = doc.data()['playedAt'];
+          if (ts == null) return null;
+          final dt = (ts as dynamic).toDate() as DateTime;
+          return DateTime(dt.year, dt.month, dt.day);
+        })
+        .whereType<DateTime>()
+        .toSet();
   }
 }
